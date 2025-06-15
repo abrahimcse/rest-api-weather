@@ -1,0 +1,44 @@
+name: Build and Push Docker Image
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Extract version from tag
+        id: vars
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: abrahimcse/rest-api-weather:${{ env.VERSION }}
+          build-args: |
+            APP_VERSION=${{ env.VERSION }}
+
+      - name: Confirm version in /api/hello
+        run: |
+          docker run -d -p 5000:5000 --name test-api \
+            -e APP_VERSION=${{ env.VERSION }} \
+            abrahimcse/rest-api-weather:${{ env.VERSION }}
+          sleep 5
+          curl http://localhost:5000/api/hello | grep "\"version\": \"${{ env.VERSION }}\""
+
