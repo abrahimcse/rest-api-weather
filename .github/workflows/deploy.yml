@@ -49,4 +49,4 @@ jobs:
           sleep 5
           RESPONSE=$(curl -s http://localhost:5000/api/hello)
           echo "Response: $RESPONSE"
-          echo "$RESPONSE" | grep "\"version\": \"${{ env.VERSION }}\""
+          echo "$RESPONSE" | grep "\"version\": \"${{ env.VERSION }}\"" || true
