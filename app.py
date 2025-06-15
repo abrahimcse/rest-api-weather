@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 WEATHER_API_URL = "http://api.weatherapi.com/v1/current.json"
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
+VERSION = os.getenv("APP_VERSION", "1.0")
 CITY = "Dhaka"
 
 @app.route("/api/hello", methods=["GET"])
@@ -19,7 +20,7 @@ def hello():
     response = {
         "hostname": hostname,
         "datetime": current_time,
-        "version": "1.0",
+        "version": VERSION,
         "weather": {
             "dhaka": {
                 "temperature": weather_info.get("temperature"),
