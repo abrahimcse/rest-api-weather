@@ -40,12 +40,13 @@ jobs:
           tags: abrahimcse/rest-api-weather:${{ env.VERSION }}
           build-args: |
             APP_VERSION=${{ env.VERSION }}
-
       - name: Confirm version in /api/hello
         run: |
+          docker rm -f test-api || true
           docker run -d -p 5000:5000 --name test-api \
             -e APP_VERSION=${{ env.VERSION }} \
             abrahimcse/rest-api-weather:${{ env.VERSION }}
           sleep 5
-          curl http://localhost:5000/api/hello | grep "\"version\": \"${{ env.VERSION }}\""
-
+          RESPONSE=$(curl -s http://localhost:5000/api/hello)
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | grep "\"version\": \"${{ env.VERSION }}\""
