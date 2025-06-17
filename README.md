@@ -130,6 +130,20 @@ aws configure
 aws eks --region ap-southeast-1 update-kubeconfig --name my_eks_cluster
 kubectl get nodes
 kubectl get svc
-kubectl port-forward svc/weather-api 8080:80
 ```
-> ➡️ Open Browser: http://localhost:8080/api/hello
+### ✅ Expected Output:
+
+
+> ➡️ Open your Browser 
+    > http://<EXTERNAL-IP>/api/hello
+    > http://<EXTERNAL-IP>/api/health
+
+### ✅ Expected Response:
+
+
+```bash
+kubectl port-forward svc/weather-api-service 8080:80
+```
+> ➡️ Open your Browser 
+    > http://localhost:8080/api/hello
+    > http://localhost:8080/api/health

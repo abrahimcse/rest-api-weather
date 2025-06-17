@@ -1,122 +1,122 @@
-name: Build, Push Docker Image and Deploy to EKS
+# name: Build, Push Docker Image and Deploy to EKS
 
-on:
-  release:
-    types: [created]
-  push:
-    branches:
-      - main
+# on:
+#   release:
+#     types: [created]
+#   push:
+#     branches:
+#       - main
 
-env:
-  AWS_REGION: ap-southeast-1
-  CLUSTER_NAME: my_eks_cluster
-  DOCKER_IMAGE: abrahimcse/rest-api-weather
+# env:
+#   AWS_REGION: ap-southeast-1
+#   CLUSTER_NAME: my_eks_cluster
+#   DOCKER_IMAGE: abrahimcse/rest-api-weather
 
-jobs:
-  build-push-and-deploy:
-    runs-on: ubuntu-latest
+# jobs:
+#   build-push-and-deploy:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
 
-      - name: Extract version
-        id: vars
-        run: |
-          VERSION="${GITHUB_REF#refs/*/}"
-          VERSION="${VERSION//\//-}"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+#       - name: Extract version
+#         id: vars
+#         run: |
+#           VERSION="${GITHUB_REF#refs/*/}"
+#           VERSION="${VERSION//\//-}"
+#           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v2
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+#       - name: Log in to Docker Hub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ env.DOCKER_IMAGE }}:${{ env.VERSION }}
-          build-args: |
-            APP_VERSION=${{ env.VERSION }}
+#       - name: Build and push Docker image
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: .
+#           push: true
+#           tags: ${{ env.DOCKER_IMAGE }}:${{ env.VERSION }}
+#           build-args: |
+#             APP_VERSION=${{ env.VERSION }}
 
-      - name: Confirm version in /api/hello
-        run: |
-          docker rm -f test-api || true
-          docker run -d -p 5000:5000 --name test-api \
-            -e APP_VERSION=${{ env.VERSION }} \
-            ${{ env.DOCKER_IMAGE }}:${{ env.VERSION }}
-          sleep 5
-          RESPONSE=$(curl -s http://localhost:5000/api/hello)
-          echo "Response: $RESPONSE"
-          echo "$RESPONSE" | grep "\"version\": \"${{ env.VERSION }}\"" || true
-          docker rm -f test-api
+#       - name: Confirm version in /api/hello
+#         run: |
+#           docker rm -f test-api || true
+#           docker run -d -p 5000:5000 --name test-api \
+#             -e APP_VERSION=${{ env.VERSION }} \
+#             ${{ env.DOCKER_IMAGE }}:${{ env.VERSION }}
+#           sleep 5
+#           RESPONSE=$(curl -s http://localhost:5000/api/hello)
+#           echo "Response: $RESPONSE"
+#           echo "$RESPONSE" | grep "\"version\": \"${{ env.VERSION }}\"" || true
+#           docker rm -f test-api
 
-      # --- Terraform Steps ---
+#       # --- Terraform Steps ---
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v2
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.6.6
 
-      - name: Terraform Init
-        working-directory: ./terraform
-        run: terraform init
+#       - name: Terraform Init
+#         working-directory: ./terraform
+#         run: terraform init
 
-      - name: Terraform Validation
-        working-directory: ./terraform
-        run: terraform validate
+#       - name: Terraform Validation
+#         working-directory: ./terraform
+#         run: terraform validate
 
-      - name: Terraform Plan
-        working-directory: ./terraform
-        run: terraform plan
+#       - name: Terraform Plan
+#         working-directory: ./terraform
+#         run: terraform plan
 
-      - name: Terraform Apply
-        working-directory: ./terraform
-        run: terraform apply -auto-approve
+#       - name: Terraform Apply
+#         working-directory: ./terraform
+#         run: terraform apply -auto-approve
 
-#      - name: Terraform Destroy
-#        working-directory: ./terraform
-#        run: terraform destroy -auto-approve
+# #      - name: Terraform Destroy
+# #        working-directory: ./terraform
+# #        run: terraform destroy -auto-approve
 
 
-      # --- Configure kubectl to connect to EKS ---
+#       # --- Configure kubectl to connect to EKS ---
 
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
+#       - name: Setup kubectl
+#         uses: azure/setup-kubectl@v3
+#         with:
+#           version: 'latest'
 
-      - name: Update kubeconfig for EKS cluster
-        run: |
-          aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+#       - name: Update kubeconfig for EKS cluster
+#         run: |
+#           aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-      # --- Kubernetes Deployment ---
+#       # --- Kubernetes Deployment ---
 
-      - name: Create Kubernetes secret for Weather API key
-        run: |
-          kubectl create secret generic weather-api-secret \
-            --from-literal=WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }} \
-            --dry-run=client -o yaml | kubectl apply -f -
+#       - name: Create Kubernetes secret for Weather API key
+#         run: |
+#           kubectl create secret generic weather-api-secret \
+#             --from-literal=WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }} \
+#             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Update image in deployment.yaml to use the new version
-        run: |
-          sed -i "s|image: .*|image: ${{ env.DOCKER_IMAGE }}:${{ env.VERSION }}|g" k8s/deployment.yaml
+#       - name: Update image in deployment.yaml to use the new version
+#         run: |
+#           sed -i "s|image: .*|image: ${{ env.DOCKER_IMAGE }}:${{ env.VERSION }}|g" k8s/deployment.yaml
 
-      - name: Deploy to Kubernetes cluster
-        run: |
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
+#       - name: Deploy to Kubernetes cluster
+#         run: |
+#           kubectl apply -f k8s/deployment.yaml
+#           kubectl apply -f k8s/service.yaml
 
