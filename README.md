@@ -123,3 +123,13 @@ kubectl delete -f k8s/
 # Destroy Terraform infrastructure
 terraform destroy -auto-approve
 ```
+---
+## AWS EKS
+```bash
+aws configure
+aws eks --region ap-southeast-1 update-kubeconfig --name my_eks_cluster
+kubectl get nodes
+kubectl get svc
+kubectl port-forward svc/weather-api 8080:80
+```
+> ➡️ Open Browser: http://localhost:8080/api/hello
