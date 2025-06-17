@@ -55,7 +55,7 @@ variable "subnet2_name" {
 variable "eks_role_name" {
   description = "IAM Role name for EKS Cluster"
   type        = string
-  default     = "eks-cluster-role"
+  default     = "eks-cluster-role-dev"
 }
 
 variable "cluster_name" {
