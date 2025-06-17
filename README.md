@@ -83,6 +83,36 @@ These secrets are accessed inside the **CI/CD pipeline** and **Kubernetes secret
 3. Kubernetes deployment to EKS 
 ---
 
+## Kubernetes Deployment Verification
+```bash
+aws configure
+aws eks --region ap-southeast-1 update-kubeconfig --name my_eks_cluster
+kubectl get nodes
+kubectl get svc
+```
+### ✅ Expected Output:
+![Expected output](https://github.com/abrahimcse/rest-api-weather/blob/main/k8s/images/terminal.png)
+
+> ➡️ http://<EXTERNAL-IP>/api/hello
+> ➡️ http://<EXTERNAL-IP>/api/health
+
+### ✅ Expected Response:
+
+![/api/hello](https://github.com/abrahimcse/rest-api-weather/blob/main/k8s/images/hello-api.png)
+![/api/health](https://github.com/abrahimcse/rest-api-weather/blob/main/k8s/images/health-api.png)
+
+```bash
+kubectl port-forward svc/weather-api-service 8080:80
+```
+![](https://github.com/abrahimcse/rest-api-weather/blob/main/k8s/images/localhost.png)
+
+> ➡️ http://localhost:8080/api/hello
+> ➡️ http://localhost:8080/api/health
+
+---
+
+## Manual Deployment Steps
+
 ### Prerequisites
 ```bash
 aws configure
@@ -90,8 +120,7 @@ terraform -v
 kubectl version
 docker --version
 ```
-### Manual Deployment Steps
-
+### Deployment Steps
 ```bash
 # 1. Build and Docker image
 docker build -t abrahimcse/rest-api-weather .
@@ -123,27 +152,3 @@ kubectl delete -f k8s/
 # Destroy Terraform infrastructure
 terraform destroy -auto-approve
 ```
----
-## AWS EKS
-```bash
-aws configure
-aws eks --region ap-southeast-1 update-kubeconfig --name my_eks_cluster
-kubectl get nodes
-kubectl get svc
-```
-### ✅ Expected Output:
-
-
-> ➡️ Open your Browser 
-    > http://<EXTERNAL-IP>/api/hello
-    > http://<EXTERNAL-IP>/api/health
-
-### ✅ Expected Response:
-
-
-```bash
-kubectl port-forward svc/weather-api-service 8080:80
-```
-> ➡️ Open your Browser 
-    > http://localhost:8080/api/hello
-    > http://localhost:8080/api/health
