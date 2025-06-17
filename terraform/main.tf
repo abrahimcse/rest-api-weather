@@ -3,37 +3,37 @@ provider "aws" {
 }
 
 resource "aws_vpc" "main_vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr
 
   tags = {
-    Name = "main-vpc"
+    Name = var.vpc_name
   }
 }
 
 resource "aws_subnet" "main_subnet_1" {
-  vpc_id            = aws_vpc.main_vpc.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "ap-southeast-1a"
+  vpc_id                  = aws_vpc.main_vpc.id
+  cidr_block              = var.subnet1_cidr
+  availability_zone       = var.az1
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "main-subnet-1"
+    Name = var.subnet1_name
   }
 }
 
 resource "aws_subnet" "main_subnet_2" {
-  vpc_id            = aws_vpc.main_vpc.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "ap-southeast-1b"
+  vpc_id                  = aws_vpc.main_vpc.id
+  cidr_block              = var.subnet2_cidr
+  availability_zone       = var.az2
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "main-subnet-2"
+    Name = var.subnet2_name
   }
 }
 
 resource "aws_iam_role" "eks_role" {
-  name = "eks-cluster-role"
+  name = var.eks_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -53,7 +53,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
 }
 
 resource "aws_eks_cluster" "eks" {
-  name     = "my_eks_cluster"
+  name     = var.cluster_name
   role_arn = aws_iam_role.eks_role.arn
 
   vpc_config {

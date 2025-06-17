@@ -3,7 +3,10 @@ output "vpc_id" {
 }
 
 output "subnet_id" {
-  value = aws_subnet.main_subnet.id
+  value = [
+    aws_subnet.main_subnet_1.id,
+    aws_subnet.main_subnet_2.id
+  ]
 }
 
 output "eks_cluster_name" {
