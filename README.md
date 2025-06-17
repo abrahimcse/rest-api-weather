@@ -1,8 +1,9 @@
-# REST API Weather
+# Weather REST API with AWS EKS Deployment
 
-A lightweight REST API built with Python and Flask. It returns server hostname, current datetime, version info, and live weather data for Dhaka. The API is containerized with Docker and deployed using a CI/CD pipeline via GitHub Actions.
+A fully automated CI/CD pipeline that builds, tests, and deploys a Flask weather API to AWS EKS using GitHub Actions.
 
 ---
+## 📂 Project Structure
 
 ```pgsql
 rest-api-weather/
@@ -30,43 +31,95 @@ rest-api-weather/
                              → Push to DockerHub
                              → Deploy to Kubernetes
                              → Optionally run Terraform
-
 ```
+--- 
 
+## Technologies Used
 
-
-## 🚀 Features
-
-- `/api/hello`: Returns hostname, datetime, version, and live weather data for Dhaka.
-- `/api/health`: API health check and external weather API availability.
-- Uses [OpenWeatherMap](https://openweathermap.org/) for real-time weather data.
-- CI/CD pipeline auto-builds and pushes Docker images to Docker Hub on every GitHub release.
-- Supports zero-downtime deployment with Docker best practices.
-
----
-
-## 📦 Technologies Used
-
-- Python 3
-- Flask
-- Docker & Docker Compose
-- GitHub Actions (CI/CD)
-- OpenWeatherMap API
+- **Terraform** – Infrastructure provisioning (EKS, IAM, VPC, etc.)
+- **AWS EKS** – Managed Kubernetes Cluster
+- **Docker & DockerHub** – Containerization and image registry
+- **Kubernetes** – Application orchestration
+- **GitHub Actions** – CI/CD pipeline
+- **Secrets** – Used for AWS, Docker, and API keys
 
 ---
 
-## 🔧 Local Development
+## Required GitHub Secrets
+**GitHub → Repository Settings → Secrets → Actions**
 
-### Prerequisites:
-- Docker & Docker Compose
-- `.env` file with:
-    
-    ```
-    API_KEY=your_openweather_api_key
-    APP_VERSION=1.0
-    ```
+| Secret Name              | Description                                 |
+|--------------------------|---------------------------------------------|
+| `AWS_ACCESS_KEY_ID`      | IAM user access key for Terraform           |
+| `AWS_SECRET_ACCESS_KEY`  | IAM user secret key for Terraform           |
+| `DOCKER_USERNAME`        | DockerHub username                          |
+| `DOCKER_PASSWORD`        | DockerHub password or access token          |
+| `WEATHER_API_KEY`        | Your third-party weather API key            |
 
-### Run Locally:
+These secrets are accessed inside the **CI/CD pipeline** and **Kubernetes secrets**.
+
+---
+
+## Features
+
+- Real-time weather data for Dhaka
+- Containerized with Docker
+- Infrastructure as Code with Terraform
+- CI/CD with GitHub Actions
+- Health check endpoints
+- Kubernetes secrets management
+
+## API Endpoints
+
+| Endpoint          | Method | Description                          |
+|-------------------|--------|--------------------------------------|
+| `/api/hello`      | GET    | Returns host info + weather data     |
+| `/api/health`     | GET    | Health check + API availability      |
+
+
+**Pipeline Stages**  
+1. Docker image build & push to Docker Hub  
+2. Terraform infrastructure provisioning  
+3. Kubernetes deployment to EKS 
+---
+
+### Prerequisites
 ```bash
-docker compose up --build
+aws configure
+terraform -v
+kubectl version
+docker --version
+```
+### Manual Deployment Steps
+
+```bash
+# 1. Build and Docker image
+docker build -t abrahimcse/rest-api-weather .
+
+# 2. Terraform deployment
+cd terraform
+terraform init
+terraform apply -auto-approve
+
+# 3. Kubernetes deployment
+kubectl apply -f k8s/
+```
+### Monitoring
+```bash
+# Check pods
+kubectl get pods -n default
+
+# View logs
+kubectl logs -f deployment/weather-api
+
+# Access service
+kubectl port-forward svc/weather-api 8080:80
+```
+### Cleanup
+```bash
+# Destroy Kubernetes resources
+kubectl delete -f k8s/
+
+# Destroy Terraform infrastructure
+terraform destroy -auto-approve
 ```

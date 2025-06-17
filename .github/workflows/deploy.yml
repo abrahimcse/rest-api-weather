@@ -78,14 +78,15 @@ jobs:
       - name: Terraform Validation
         working-directory: ./terraform
         run: terraform validate
-      
-#      - name: Terraform Apply
-#        working-directory: ./terraform
-#        run: terraform apply -auto-approve
 
-      - name: Terraform Destroy
+      - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform destroy
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+
 
       # --- Configure kubectl to connect to EKS ---
 
