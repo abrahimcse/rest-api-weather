@@ -28,6 +28,12 @@ variable "subnet2_cidr" {
   default     = "10.0.2.0/24"
 }
 
+variable "igw_cidr" {
+  description = "Internet gateway CIDR block"
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
 variable "az1" {
   description = "Availability Zone for Subnet 1"
   type        = string
